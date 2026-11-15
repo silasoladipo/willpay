@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="WillPay finds problems people will pay to fix, ranked by buying intent across Reddit, app-store reviews, G2, Hacker News, Product Hunt and YouTube.">
+</head>
+<body>
+<title>WillPay</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one evidence-board column — claim on the left, a live-looking scan card on the right, then proof sections stacked below */
+:root{
+  --bg:#F4F6F9; --surface:#FFFFFF; --ink:#11151D; --muted:#5A6272; --line:#DDE2EA;
+  --accent:#2448E8; --accent-ink:#FFFFFF; --pay:#B87400; --pay-soft:#FFF3DC; --good:#137A4B;
+  --display:"Familjen Grotesk","Helvetica Neue",Arial,sans-serif;
+  --body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E1117; --surface:#161B24; --ink:#EEF1F6; --muted:#9AA3B2; --line:#283040;
+  --accent:#6E8BFF; --accent-ink:#0B0F18; --pay:#F2B54A; --pay-soft:#2C2412; --good:#4FCB8E; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1117; --surface:#161B24; --ink:#EEF1F6; --muted:#9AA3B2; --line:#283040;
+  --accent:#6E8BFF; --accent-ink:#0B0F18; --pay:#F2B54A; --pay-soft:#2C2412; --good:#4FCB8E; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1120px;margin:0 auto}
+h1,h2,h3{font-family:var(--display);line-height:1.08;text-wrap:balance;margin:0}
+h1{font-size:clamp(2.4rem,5.6vw,4.3rem);letter-spacing:-.02em;font-weight:700}
+h2{font-size:clamp(1.7rem,3.4vw,2.5rem);letter-spacing:-.015em;font-weight:700}
+h3{font-size:1.15rem;font-weight:600}
+p{margin:0}
+.lede{color:var(--muted);font-size:1.15rem;max-width:34em}
+.eyebrow{font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
+
+nav{display:flex;justify-content:space-between;align-items:center;padding-block:22px}
+.mark{font-family:var(--display);font-weight:700;font-size:1.35rem;letter-spacing:-.01em;display:flex;align-items:center;gap:8px;text-decoration:none}
+.mark i{display:inline-block;width:12px;height:12px;border-radius:3px;background:var(--pay);box-shadow:5px 5px 0 var(--accent)}
+.navlink{font-weight:600;font-size:.95rem;text-decoration:none;border-bottom:2px solid var(--accent)}
+
+.hero{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center;padding-block:40px 72px}
+.hero>*{min-width:0}
+.hero h1 em{font-style:normal;color:var(--pay);background:linear-gradient(transparent 62%,var(--pay-soft) 62%)}
+.stack{display:flex;flex-direction:column;gap:22px}
+
+form.wl{display:flex;gap:8px;flex-wrap:wrap;max-width:460px}
+form.wl input{flex:1 1 220px;min-width:0;font:inherit;padding:13px 14px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+button{font:inherit;font-weight:600;cursor:pointer;border:0;border-radius:10px;padding:13px 18px;background:var(--accent);color:var(--accent-ink)}
+button:hover{filter:brightness(1.08)}
+.formnote{font-size:.85rem;color:var(--muted);min-height:1.3em}
+.formnote.ok{color:var(--good)}
+
+/* scan card */
+.scan{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:0 18px 40px -24px rgba(17,21,29,.35);display:flex;flex-direction:column;gap:16px}
+.scan-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.tag{font-family:var(--mono);font-size:.72rem;padding:3px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.scan h3{font-size:1.25rem}
+.meters{display:grid;grid-template-columns:auto 1fr auto;gap:8px 12px;align-items:center;font-size:.88rem}
+.bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden}
+.bar span{display:block;height:100%;border-radius:99px}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+.sources{display:flex;flex-wrap:wrap;gap:6px}
+.src{font-family:var(--mono);font-size:.74rem;padding:4px 8px;border-radius:6px;background:var(--bg);font-variant-numeric:tabular-nums}
+.quote{border-left:3px solid var(--pay);padding:4px 0 4px 12px;font-size:.92rem}
+.quote small{display:block;color:var(--muted);font-family:var(--mono);font-size:.72rem;margin-top:3px}
+.scan-foot{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--line);padding-top:14px;font-size:.88rem}
+.scan-foot b{color:var(--accent)}
+
+section{padding-block:64px;border-top:1px solid var(--line)}
+.sec-head{display:flex;flex-direction:column;gap:12px;max-width:640px;margin-bottom:36px}
+
+.signals{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
+.signals>div{display:flex;flex-direction:column;gap:8px;min-width:0}
+.signals code{font-family:var(--mono);font-size:.85rem;background:var(--pay-soft);color:var(--pay);padding:2px 6px;border-radius:5px;align-self:flex-start}
+.signals p{color:var(--muted)}
+
+.srcgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.srcgrid div{background:var(--surface);padding:18px;display:flex;flex-direction:column;gap:4px}
+.srcgrid b{font-family:var(--display);font-size:1.05rem}
+.srcgrid span{color:var(--muted);font-size:.9rem}
+
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;counter-reset:s}
+.steps>div{display:flex;flex-direction:column;gap:8px;min-width:0}
+.steps>div::before{counter-increment:s;content:"Step " counter(s);font-family:var(--mono);font-size:.75rem;color:var(--accent);letter-spacing:.06em;text-transform:uppercase}
+.steps p{color:var(--muted)}
+
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:.95rem}
+th,td{text-align:left;padding:14px 18px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+th{font-family:var(--mono);font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:500}
+td.y{color:var(--good);font-weight:600}
+td.n{color:var(--muted)}
+
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.plan{border:1px solid var(--line);border-radius:14px;padding:24px;display:flex;flex-direction:column;gap:14px;background:var(--surface)}
+.plan.hl{border:2px solid var(--accent)}
+.price{font-family:var(--display);font-size:2.4rem;font-weight:700;font-variant-numeric:tabular-nums}
+.price small{font-size:1rem;color:var(--muted);font-weight:500}
+.plan ul{margin:0;padding-left:18px;color:var(--muted);display:flex;flex-direction:column;gap:6px;font-size:.93rem}
+.founding{font-family:var(--mono);font-size:.72rem;color:var(--pay)}
+
+.closer{display:flex;flex-direction:column;align-items:flex-start;gap:20px}
+footer{padding-block:28px 40px;color:var(--muted);font-size:.85rem;border-top:1px solid var(--line)}
+
+@media (max-width:860px){
+  .hero{grid-template-columns:1fr;gap:36px;padding-block:20px 48px}
+  .signals,.steps,.plans{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:no-preference){
+  .bar span{animation:grow .9s cubic-bezier(.2,.8,.2,1) both}
+  @keyframes grow{from{transform:scaleX(.15);transform-origin:left}to{transform:scaleX(1);transform-origin:left}}
+}
+</style>
+
+<div class="wrap">
+  <nav>
+    <a class="mark" href="#top"><i></i>WillPay</a>
+    <a class="navlink" href="#join">Join the waitlist</a>
+  </nav>
+
+  <header class="hero" id="top">
+    <div class="stack">
+      <span class="eyebrow">For founders, indie hackers and studios</span>
+      <h1>Find problems people will <em>pay</em> to fix.</h1>
+      <p class="lede">WillPay reads Reddit, app-store reviews, G2, Hacker News, Product Hunt and YouTube comments. It ranks every pain by signs that people will spend money on a fix, not just by how often they complain.</p>
+      <form class="wl" data-form>
+        <label for="email-top" class="eyebrow" style="flex-basis:100%">Get early access</label>
+        <input id="email-top" type="email" required placeholder="you@studio.com" autocomplete="email">
+        <button type="submit">Join waitlist</button>
+        <p class="formnote" aria-live="polite" style="flex-basis:100%"></p>
+      </form>
+    </div>
+
+    <article class="scan" aria-label="Example scan result">
+      <div class="scan-top">
+        <span class="tag">Example scan · last 90 days</span>
+        <span class="tag">Freelance design</span>
+      </div>
+      <h3>Clients send feedback in five places and designers lose track of it</h3>
+      <div class="meters">
+        <span>Pay signal</span><div class="bar"><span style="width:82%;background:var(--pay)"></span></div><span class="num">82</span>
+        <span>Volume</span><div class="bar"><span style="width:64%;background:var(--accent)"></span></div><span class="num">64</span>
+        <span>Growth</span><div class="bar"><span style="width:47%;background:var(--good)"></span></div><span class="num">+47%</span>
+      </div>
+      <div class="sources">
+        <span class="src">Reddit 41</span><span class="src">G2 12</span><span class="src">App Store 9</span><span class="src">HN 4</span><span class="src">YouTube 7</span>
+      </div>
+      <p class="quote">“Is there any tool that pulls client comments from email, Slack and Figma into one list? I'd happily pay.”<small>Example quote · would-pay signal</small></p>
+      <div class="scan-foot">
+        <span>14 would-pay posts · 6 leaving a paid tool</span>
+        <b>Make a test page →</b>
+      </div>
+    </article>
+  </header>
+
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">Why volume isn't enough</span>
+      <h2>A loud complaint isn't a market. WillPay looks for buying intent.</h2>
+    </div>
+    <div class="signals">
+      <div><code>"I'd pay for…"</code><h3>People asking to pay</h3><p>Posts that ask for a tool, name a budget or say they would pay. These are the strongest signal there is.</p></div>
+      <div><code>"switching from…"</code><h3>People leaving a paid tool</h3><p>Someone already paying a competitor and looking to leave is the easiest customer to win.</p></div>
+      <div><code>"my workaround is…"</code><h3>People rigging fixes</h3><p>Spreadsheets, scripts and Zapier chains show the problem costs them time every week.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">Sources</span>
+      <h2>Seven places people complain, in one scan.</h2>
+      <p class="lede">Tools that only read Reddit go dark when Reddit changes its rules. WillPay cross-checks each pain across platforms, so you see the same problem from several angles.</p>
+    </div>
+    <div class="srcgrid">
+      <div><b>Reddit</b><span>Honest, detailed frustration by community</span></div>
+      <div><b>G2 &amp; Capterra</b><span>What paying B2B customers dislike</span></div>
+      <div><b>App Store &amp; Google Play</b><span>1–3 star reviews of the apps people already use</span></div>
+      <div><b>Hacker News</b><span>Developer and technical buyer pain</span></div>
+      <div><b>Product Hunt</b><span>Feature requests on new launches</span></div>
+      <div><b>YouTube comments</b><span>Tutorial viewers stuck on a step</span></div>
+      <div><b>X</b><span>Fast-moving complaints and trends</span></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">From pain to proof</span>
+      <h2>Don't stop at an idea. Test it the same afternoon.</h2>
+    </div>
+    <div class="steps">
+      <div><h3>Scan a market</h3><p>Pick a profession, a competitor or a keyword. WillPay pulls the last 7, 30 or 90 days from every source.</p></div>
+      <div><h3>Rank by pay signal</h3><p>Each pain gets a score for buying intent, volume and growth, with every quote linked back to its source.</p></div>
+      <div><h3>Launch a test page</h3><p>Turn any pain into a landing page with a waitlist in one click, then see if real people sign up.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">Compared</span>
+      <h2>What Reddit-only tools leave out</h2>
+    </div>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Feature</th><th>Reddit-only tools</th><th>WillPay</th></tr></thead>
+        <tbody>
+          <tr><td>Sources</td><td class="n">Reddit</td><td class="y">7 platforms</td></tr>
+          <tr><td>Ranks by willingness to pay</td><td class="n">No, ranks by volume</td><td class="y">Yes</td></tr>
+          <tr><td>Finds people leaving competitors</td><td class="n">No</td><td class="y">Yes</td></tr>
+          <tr><td>Trend alerts when a pain grows</td><td class="n">Weekly topic emails</td><td class="y">Growth score and alerts</td></tr>
+          <tr><td>One-click test landing page</td><td class="n">No</td><td class="y">Yes, with waitlist</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">Pricing</span>
+      <h2>Founding prices for the first 200 people</h2>
+    </div>
+    <div class="plans">
+      <div class="plan"><h3>Free</h3><div class="price">$0</div><ul><li>3 scans a month</li><li>Reddit and Hacker News</li><li>Top 5 pains per scan</li></ul></div>
+      <div class="plan hl"><h3>Builder</h3><div class="price">$24<small>/mo</small></div><span class="founding">Founding price, locked for life</span><ul><li>40 scans a month</li><li>All 7 sources</li><li>Pay-signal scoring</li><li>3 test landing pages</li><li>Weekly trend alerts</li></ul></div>
+      <div class="plan"><h3>Studio</h3><div class="price">$59<small>/mo</small></div><ul><li>Unlimited scans</li><li>Competitor switch tracking</li><li>Unlimited test pages</li><li>PDF reports for clients</li><li>3 team seats</li></ul></div>
+    </div>
+  </section>
+
+  <section id="join">
+    <div class="closer">
+      <span class="eyebrow">Early access</span>
+      <h2>Be first to scan your market.</h2>
+      <p class="lede">We're letting people in a few at a time. Waitlist members get the founding price.</p>
+      <form class="wl" data-form>
+        <label for="email-bottom" class="eyebrow" style="flex-basis:100%">Your email</label>
+        <input id="email-bottom" type="email" required placeholder="you@studio.com" autocomplete="email">
+        <button type="submit">Join waitlist</button>
+        <p class="formnote" aria-live="polite" style="flex-basis:100%"></p>
+      </form>
+    </div>
+  </section>
+
+  <footer>WillPay · working name · © 2026</footer>
+</div>
+
+<script>
+// Google Apps Script web app URL that appends rows to the WillPay waitlist sheet.
+const WAITLIST_ENDPOINT = "";
+document.querySelectorAll("[data-form]").forEach(form => {
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    const note = form.querySelector(".formnote");
+    const email = form.querySelector("input").value.trim();
+    note.className = "formnote";
+    if (!WAITLIST_ENDPOINT) { note.textContent = "Preview only: the waitlist isn't connected yet."; return; }
+    try {
+      // Apps Script doesn't answer CORS preflights, so send a simple form post; the response is opaque.
+      await fetch(WAITLIST_ENDPOINT, {method:"POST", mode:"no-cors", body:new URLSearchParams({email, source: form.closest("#join") ? "bottom" : "top", page: location.href})});
+      note.textContent = "You're on the list. We'll email you when your spot opens.";
+      note.className = "formnote ok"; form.querySelector("input").value = "";
+    } catch { note.textContent = "That didn't go through. Check your connection and try again."; }
+  });
+});
+</script>
+
+</body>
+</html>
